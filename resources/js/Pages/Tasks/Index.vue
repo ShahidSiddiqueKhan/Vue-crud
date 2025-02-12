@@ -57,14 +57,7 @@
             <input type="date" v-model="form.due_date" :style="styles.inputStyle">
           </div>
 
-          <div>
-            <label for="priority">Set Priority:</label>
-            <select id="priority" v-model="form.priority" :style="styles.inputStyle">
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
+          
 
           <div>
             <label for="reminderToggle">Set Reminder:</label>
@@ -75,7 +68,14 @@
             <label for="reminder">Select Reminder Date:</label>
             <input type="date" v-model="form.reminder" :style="styles.inputStyle">
           </div>
-
+          <div>
+            <label for="priority">Set Priority:</label>
+            <select id="priority" v-model="form.priority" :style="styles.inputStyle">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
           <button type="submit" :style="styles.buttonStyle">{{ editingTask ? 'Update' : 'Add' }}</button>
           <button type="button" @click="closeModal" :style="styles.closeButtonStyle">Cancel</button>
         </form>
@@ -133,7 +133,7 @@ export default {
         await apiClient({
           method: taskId ? 'put' : 'post',
           url: apiUrl,
-          data: this.form
+          data: this.form   
         });
         this.refreshTasks();
         this.closeModal();
@@ -178,13 +178,9 @@ export default {
       this.reminderToggle = false;
     },
 
-    async logout() {
-      try {
-        await apiClient.post('/logout');
-        window.location.href = '/login';
-      } catch (error) {
-        console.error("Error logging out:", error.response?.data || error.message);
-      }
+    logout() {
+    window.location.href = "/login"; // Redirect to login page
+  
     }
   }
 };

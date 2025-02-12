@@ -116,7 +116,28 @@ export default {
     backgroundColor: '#d68910',
   },
 
+  attachmentContent: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "300px",
+  },
   
+  attachmentModalContent: {
+    backgroundColor: "#fff",
+    padding: "24px",
+    borderRadius: "8px",
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+    width: "80%",
+    maxWidth: "800px",
+    maxHeight: "80vh",
+    overflow: "auto",
+  },
+  attachmentPreview: {
+    maxWidth: "100%",
+    maxHeight: "60vh",
+    objectFit: "contain",
+  },
   modalOverlay: {
     position: 'fixed',
     top: '0',
