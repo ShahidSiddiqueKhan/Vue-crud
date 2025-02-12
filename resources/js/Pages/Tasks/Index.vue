@@ -1,7 +1,12 @@
 <template>
   <div :style="styles.containerStyle">
     <button @click="logout" :style="styles.logoutButtonStyle">Logout</button>
-    <button @click="openModal(null)" :style="styles.buttonStyle">Add Task</button>
+    <button 
+  v-if="userRole === 'admin' || userRole === 'super-admin'" 
+  @click="openModal(null)" 
+  :style="styles.buttonStyle">
+  Add Task
+</button>
 
     <table :style="styles.tableStyle">
       <thead>
@@ -89,7 +94,7 @@ import apiClient from '@/config/axios.js';
 import styles from '@/config/StyleConfig.js';
 
 export default {
-  props: ['tasks'],
+  props: ['tasks', 'userRole'],  
   data() {
     return {
       form: { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' },
@@ -101,6 +106,8 @@ export default {
       reminderToggle: false  
     };
   },
+
+
   methods: {
     openModal(task) {
       if (task && task.id) {
@@ -179,7 +186,7 @@ export default {
     },
 
     logout() {
-    window.location.href = "/login"; // Redirect to login page
+    window.location.href = "/login"; 
   
     }
   }
