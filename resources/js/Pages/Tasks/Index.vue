@@ -10,6 +10,8 @@
           <th :style="styles.thStyle">Description</th>
           <th :style="styles.thStyle">Status</th>
           <th :style="styles.thStyle">Due Date</th>
+          <th :style="styles.thStyle">Priority</th>
+          <th :style="styles.thStyle">Reminder</th>
           <th :style="styles.thStyle">Actions</th>
         </tr>
       </thead>
@@ -19,6 +21,8 @@
           <td :style="styles.tdStyle">{{ task.description }}</td>
           <td :style="styles.tdStyle">{{ task.status }}</td>
           <td :style="styles.tdStyle">{{ task.due_date }}</td>
+          <td :style="styles.tdStyle">{{ task.priority }}</td>
+          <td :style="styles.tdStyle">{{ task.reminder }}</td>
           <td :style="styles.tdStyle">
             <button @click="openModal(task)" :style="styles.editButtonStyle">Edit</button>
             <button @click="confirmDelete(task.id)" :style="styles.deleteButtonStyle">Delete</button>
@@ -53,6 +57,25 @@
             <input type="date" v-model="form.due_date" :style="styles.inputStyle">
           </div>
 
+          <div>
+            <label for="priority">Set Priority:</label>
+            <select id="priority" v-model="form.priority" :style="styles.inputStyle">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="reminderToggle">Set Reminder:</label>
+            <input type="checkbox" id="reminderToggle" v-model="reminderToggle" />
+          </div>
+
+          <div v-if="reminderToggle">
+            <label for="reminder">Select Reminder Date:</label>
+            <input type="date" v-model="form.reminder" :style="styles.inputStyle">
+          </div>
+
           <button type="submit" :style="styles.buttonStyle">{{ editingTask ? 'Update' : 'Add' }}</button>
           <button type="button" @click="closeModal" :style="styles.closeButtonStyle">Cancel</button>
         </form>
@@ -69,12 +92,13 @@ export default {
   props: ['tasks'],
   data() {
     return {
-      form: { title: '', description: '', status: 'Pending', due_date: '' },
+      form: { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' },
       showModal: false,
       editingTask: null,
       styles,
       errorMessage: "",
-      dueDateToggle: false  
+      dueDateToggle: false,
+      reminderToggle: false  
     };
   },
   methods: {
@@ -82,11 +106,13 @@ export default {
       if (task && task.id) {
         this.editingTask = task;
         this.form = { ...task };
-        this.dueDateToggle = !!task.due_date; 
+        this.dueDateToggle = !!task.due_date;
+        this.reminderToggle = !!task.reminder;
       } else {
         this.editingTask = null;
-        this.form = { title: '', description: '', status: 'Pending', due_date: '' };
+        this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' };
         this.dueDateToggle = false;
+        this.reminderToggle = false;
       }
       this.showModal = true;
     },
@@ -147,8 +173,9 @@ export default {
     closeModal() {
       this.showModal = false;
       this.editingTask = null;
-      this.form = { title: '', description: '', status: 'Pending', due_date: '' };
+      this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' };
       this.dueDateToggle = false;
+      this.reminderToggle = false;
     },
 
     async logout() {

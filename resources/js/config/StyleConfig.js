@@ -2,7 +2,7 @@ export default {
   
   containerStyle: {
     padding: '32px',
-    maxWidth: '800px',
+    // maxWidth: '800px',
     margin: '50px auto',
     backgroundColor: '#ffffff',
     borderRadius: '12px',
