@@ -2,11 +2,11 @@
   <div :style="styles.containerStyle">
     <button @click="logout" :style="styles.logoutButtonStyle">Logout</button>
     <button 
-  v-if="userRole === 'admin' || userRole === 'super-admin'" 
-  @click="openModal(null)" 
-  :style="styles.buttonStyle">
-  Add Task
-</button>
+      v-if="userRole === 'admin' || userRole === 'super-admin'" 
+      @click="openModal(null)" 
+      :style="styles.buttonStyle">
+      Add Task
+    </button>
 
     <table :style="styles.tableStyle">
       <thead>
@@ -17,6 +17,7 @@
           <th :style="styles.thStyle">Due Date</th>
           <th :style="styles.thStyle">Priority</th>
           <th :style="styles.thStyle">Reminder</th>
+          <th :style="styles.thStyle">User</th>
           <th :style="styles.thStyle">Actions</th>
         </tr>
       </thead>
@@ -24,10 +25,34 @@
         <tr v-for="task in tasks" :key="task.id">
           <td :style="styles.tdStyle">{{ task.title }}</td>
           <td :style="styles.tdStyle">{{ task.description }}</td>
-          <td :style="styles.tdStyle">{{ task.status }}</td>
+          <td :style="styles.tdStyle">
+          <select v-model="task.status" @change="updateStatus(task)" :style="styles.inputStyle">
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </td>
+
           <td :style="styles.tdStyle">{{ task.due_date }}</td>
           <td :style="styles.tdStyle">{{ task.priority }}</td>
           <td :style="styles.tdStyle">{{ task.reminder }}</td>
+          <td :style="styles.tdStyle">
+  <span v-if="userRole !== 'admin' && userRole !== 'super-admin'">
+    {{ task.assigned_user ? task.assigned_user.name : 'Unassigned' }}
+  </span>
+
+  <select 
+    v-if="userRole === 'admin' || userRole === 'super-admin'" 
+    v-model="task.assigned_to" 
+    @change="assignTask(task)" 
+    :style="styles.inputStyle">
+    <option value="" disabled>Select User</option>
+    <option v-for="user in users" :key="user.id" :value="user.id">
+      {{ user.name }}
+    </option>
+  </select>
+</td>
+
+
           <td :style="styles.tdStyle">
             <button @click="openModal(task)" :style="styles.editButtonStyle">Edit</button>
             <button @click="confirmDelete(task.id)" :style="styles.deleteButtonStyle">Delete</button>
@@ -62,8 +87,6 @@
             <input type="date" v-model="form.due_date" :style="styles.inputStyle">
           </div>
 
-          
-
           <div>
             <label for="reminderToggle">Set Reminder:</label>
             <input type="checkbox" id="reminderToggle" v-model="reminderToggle" />
@@ -73,6 +96,7 @@
             <label for="reminder">Select Reminder Date:</label>
             <input type="date" v-model="form.reminder" :style="styles.inputStyle">
           </div>
+
           <div>
             <label for="priority">Set Priority:</label>
             <select id="priority" v-model="form.priority" :style="styles.inputStyle">
@@ -81,6 +105,7 @@
               <option value="High">High</option>
             </select>
           </div>
+
           <button type="submit" :style="styles.buttonStyle">{{ editingTask ? 'Update' : 'Add' }}</button>
           <button type="button" @click="closeModal" :style="styles.closeButtonStyle">Cancel</button>
         </form>
@@ -94,10 +119,10 @@ import apiClient from '@/config/axios.js';
 import styles from '@/config/StyleConfig.js';
 
 export default {
-  props: ['tasks', 'userRole'],  
+  props: ['tasks', 'users', 'userRole'],  
   data() {
     return {
-      form: { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' },
+      form: { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' },
       showModal: false,
       editingTask: null,
       styles,
@@ -106,7 +131,6 @@ export default {
       reminderToggle: false  
     };
   },
-
 
   methods: {
     openModal(task) {
@@ -117,7 +141,7 @@ export default {
         this.reminderToggle = !!task.reminder;
       } else {
         this.editingTask = null;
-        this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' };
+        this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' };
         this.dueDateToggle = false;
         this.reminderToggle = false;
       }
@@ -148,6 +172,37 @@ export default {
         console.error("Error saving task:", error.response?.data || error.message);
       }
     },
+    async updateStatus(task) {
+  try {
+    const token = localStorage.getItem('token'); // Fetch token from localStorage
+
+    if (!token) {
+      alert("Authentication token missing. Please login again.");
+      return;
+    }
+
+    const response = await apiClient.put(
+      `/tasks/${task.id}/status`,
+      { status: task.status },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✅ Status updated successfully!", response.data);
+    alert("Task status updated successfully!");
+  } catch (error) {
+    console.error("❌ Error updating status:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Failed to update status. Please try again.");
+  }
+},
+
+
+
 
     async deleteTask(id) {
       if (!id) {
@@ -168,6 +223,15 @@ export default {
       }
     },
 
+    async assignTask(task) {
+      try {
+        await apiClient.put(`/tasks/${task.id}/assign`, { assigned_to: task.assigned_to });
+        this.refreshTasks();
+      } catch (error) {
+        console.error("Error assigning task:", error.response?.data || error.message);
+      }
+    },
+
     async refreshTasks() {
       try {
         const response = await apiClient.get('/tasks');
@@ -180,14 +244,13 @@ export default {
     closeModal() {
       this.showModal = false;
       this.editingTask = null;
-      this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '' };
+      this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' };
       this.dueDateToggle = false;
       this.reminderToggle = false;
     },
 
     logout() {
-    window.location.href = "/login"; 
-  
+      window.location.href = "/login"; 
     }
   }
 };
