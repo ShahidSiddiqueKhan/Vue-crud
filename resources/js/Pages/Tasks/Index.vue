@@ -174,32 +174,17 @@ export default {
     },
     async updateStatus(task) {
   try {
-    const token = localStorage.getItem('token'); // Fetch token from localStorage
+    await apiClient.put(`/tasks/${task.id}/status`, { status: task.status });
 
-    if (!token) {
-      alert("Authentication token missing. Please login again.");
-      return;
-    }
-
-    const response = await apiClient.put(
-      `/tasks/${task.id}/status`,
-      { status: task.status },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("✅ Status updated successfully!", response.data);
+    console.log("✅ Status updated successfully!");
     alert("Task status updated successfully!");
   } catch (error) {
     console.error("❌ Error updating status:", error.response?.data || error.message);
     alert(error.response?.data?.message || "Failed to update status. Please try again.");
   }
 },
+
+
 
 
 
