@@ -119,10 +119,18 @@ import apiClient from '@/config/axios.js';
 import styles from '@/config/StyleConfig.js';
 
 export default {
-  props: ['tasks', 'users', 'userRole'],  
+  props: ['tasks', 'users', 'userRole'],
   data() {
     return {
-      form: { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' },
+      form: { 
+        title: '', 
+        description: '', 
+        status: 'Pending', 
+        due_date: '', 
+        priority: 'Low', 
+        reminder: '', 
+        assigned_to: '' 
+      },
       showModal: false,
       editingTask: null,
       styles,
@@ -136,12 +144,21 @@ export default {
     openModal(task) {
       if (task && task.id) {
         this.editingTask = task;
+        // Spread the task data into form; ensure assigned_to is included
         this.form = { ...task };
         this.dueDateToggle = !!task.due_date;
         this.reminderToggle = !!task.reminder;
       } else {
         this.editingTask = null;
-        this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' };
+        this.form = { 
+          title: '', 
+          description: '', 
+          status: 'Pending', 
+          due_date: '', 
+          priority: 'Low', 
+          reminder: '', 
+          assigned_to: '' 
+        };
         this.dueDateToggle = false;
         this.reminderToggle = false;
       }
@@ -150,21 +167,18 @@ export default {
 
     async saveTask() {
       const alphaRegex = /^[A-Za-z\s]+$/;
-
       if (!alphaRegex.test(this.form.title)) {
         this.errorMessage = "Title must only contain alphabetic characters and spaces.";
         return; 
       }
-
       this.errorMessage = "";
       const taskId = this.editingTask?.id;
       const apiUrl = taskId ? `/tasks/${taskId}` : '/tasks';
-      
       try {
         await apiClient({
           method: taskId ? 'put' : 'post',
           url: apiUrl,
-          data: this.form   
+          data: this.form
         });
         this.refreshTasks();
         this.closeModal();
@@ -172,22 +186,22 @@ export default {
         console.error("Error saving task:", error.response?.data || error.message);
       }
     },
+
     async updateStatus(task) {
-  try {
-    await apiClient.put(`/tasks/${task.id}/status`, { status: task.status });
-
-    console.log("✅ Status updated successfully!");
-    alert("Task status updated successfully!");
-  } catch (error) {
-    console.error("❌ Error updating status:", error.response?.data || error.message);
-    alert(error.response?.data?.message || "Failed to update status. Please try again.");
-  }
-},
-
-
-
-
-
+      try {
+        // We assume that the axios instance sends credentials (cookies) automatically
+        const response = await apiClient.put(
+          `/tasks/${task.id}/status`,
+          { status: task.status }
+        );
+        console.log("✅ Status updated successfully!", response.data);
+        alert("Task status updated successfully!");
+        this.refreshTasks();
+      } catch (error) {
+        console.error("❌ Error updating status:", error.response?.data || error.message);
+        alert(error.response?.data?.message || "Failed to update status. Please try again.");
+      }
+    },
 
     async deleteTask(id) {
       if (!id) {
@@ -229,14 +243,23 @@ export default {
     closeModal() {
       this.showModal = false;
       this.editingTask = null;
-      this.form = { title: '', description: '', status: 'Pending', due_date: '', priority: 'Low', reminder: '', assigned_to: '' };
+      this.form = { 
+        title: '', 
+        description: '', 
+        status: 'Pending', 
+        due_date: '', 
+        priority: 'Low', 
+        reminder: '', 
+        assigned_to: '' 
+      };
       this.dueDateToggle = false;
       this.reminderToggle = false;
     },
 
     logout() {
-      window.location.href = "/login"; 
+      window.location.href = "/login";
     }
   }
 };
 </script>
+

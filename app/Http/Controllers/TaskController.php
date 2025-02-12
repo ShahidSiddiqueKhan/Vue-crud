@@ -113,14 +113,20 @@ class TaskController extends Controller
     }
     
     public function updateStatus(Request $request, Task $task)
-{
-    $request->validate([
-        'status' => 'required|in:Pending,Completed',
-    ]);
-
-    $task->update(['status' => $request->status]);
-
-    return response()->json(['message' => 'Task status updated successfully.']);
-}
-
+    {
+        $request->validate([
+            'status' => 'required|in:Pending,Completed',
+        ]);
+    
+        // Debugging: Log the request and task
+        \Log::info("Updating Task ID: {$task->id} to status: {$request->status}");
+    
+        $task->status = $request->status;
+        $task->save();
+    
+        return response()->json([
+            'message' => 'Task status updated successfully!',
+            'task' => $task
+        ], 200);
+    }
 }
