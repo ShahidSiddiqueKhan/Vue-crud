@@ -26,9 +26,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Define Gates for role-based access control
+        
         Gate::define('manage-tasks', function (User $user) {
-            return $user->hasRole('admin'); // Only admins can manage tasks
+            return $user->hasRole('admin'); 
         });
 
         Gate::define('view-task', function (User $user, $task) {
