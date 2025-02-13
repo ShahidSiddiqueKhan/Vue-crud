@@ -70,12 +70,7 @@
   <script>
   import apiClient from '@/config/axios.js';
   import styles from '@/config/StyleConfig.js';
-  import { getUser } from '@/auth.js';
-  
-  export default {
-    data() {
-      return {
-        form: { title: '', description: '', status: 'Pending', assigned_to: '', due_date: '' },
+  import { getUse        form: { title: '', description: '', status: 'Pending', assigned_        form: { title: '', description: '', status: 'Pending', assigned_users: [], due_date: '' },
         showModal: false,
         editingTask: null,
         tasks: [],
@@ -114,7 +109,9 @@
           this.form = { ...task };
         } else {
           this.editingTask = null;
-          this.form = { title: '', description: '', status: 'Pending', assigned_to: '', due_date: '' };
+          this.form = { title: '', description: '', status: 'Pending', assigned_users: [], due_date: '' };
+, assigned_usersusers d[]_date: '' };
+ding', assigned_users: [], due_date: '' };
         }
         this.showModal = true;
       },
