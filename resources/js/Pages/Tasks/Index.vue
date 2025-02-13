@@ -20,7 +20,7 @@
           <th :style="styles.thStyle">Priority</th>
           <th :style="styles.thStyle">Reminder</th>
           <th :style="styles.thStyle">User</th>
-          <th :style="styles.thStyle">Actions</th>
+          <th v-if="userRole === 'admin' || userRole === 'super-admin'" :style="styles.thStyle">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -56,8 +56,8 @@
 
 
           <td :style="styles.tdStyle">
-            <button @click="openModal(task)" :style="styles.editButtonStyle">Edit</button>
-            <button @click="confirmDelete(task.id)" :style="styles.deleteButtonStyle">Delete</button>
+            <button v-if="userRole === 'admin' || userRole === 'super-admin'" @click="openModal(task)" :style="styles.editButtonStyle">Edit</button>
+            <button v-if="userRole === 'admin' || userRole === 'super-admin'" @click="confirmDelete(task.id)" :style="styles.deleteButtonStyle">Delete</button>
           </td>
         </tr>
       </tbody>

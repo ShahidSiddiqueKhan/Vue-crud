@@ -24,7 +24,6 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
     });
 
-   
+    
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
 });
-

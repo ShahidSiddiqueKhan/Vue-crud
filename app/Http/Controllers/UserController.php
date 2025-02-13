@@ -11,9 +11,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render('Users/Index', [
-            'users' => User::all(),
-            'userRole' => auth()->user()->role 
+            'users' => User::all() // Pass users data to Vue
         ]);
     }
-    
 }
