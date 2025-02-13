@@ -1,5 +1,7 @@
 <template>
+       <AdminHeader v-if="userRole === 'admin' || userRole === 'super-admin'" :userRole="userRole" />
   <div :style="styles.containerStyle">
+    
     <button @click="logout" :style="styles.logoutButtonStyle">Logout</button>
     <button 
       v-if="userRole === 'admin' || userRole === 'super-admin'" 
@@ -116,9 +118,17 @@
 
 <script>
 import apiClient from '@/config/axios.js';
+import AdminHeader from '@/components/AdminHeader.vue';
 import styles from '@/config/StyleConfig.js';
 
 export default {
+  components: {
+    AdminHeader,
+  },
+  props: {
+    userRole: String,  
+  },
+
   props: ['tasks', 'users', 'userRole'],
   data() {
     return {
