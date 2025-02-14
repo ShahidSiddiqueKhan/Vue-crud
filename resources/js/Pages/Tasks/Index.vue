@@ -223,9 +223,9 @@ try {
 const response = await apiClient.put(`/tasks/${task.id}/status`, { status: task.status });
 
 if (task.status === "Completed") {
- task.completed_at = response.data.task.completed_at || new Date().toISOString(); // Fallback in case API doesn't send it
+ task.completed_at = response.data.task.completed_at || new Date().toISOString(); 
 } else {
- task.completed_at = null; // Reset if status is not "Completed"
+ task.completed_at = null; 
 }
 
 alert("Task status updated successfully!");

@@ -25,7 +25,16 @@ class Task extends Model
     ];
 
     public function assignedUsers()
-    {
-        return $this->belongsToMany(User::class, 'task_user', 'task_id', 'user_id')->withTimestamps();
-    }
+{
+    return $this->belongsToMany(User::class, 'task_user')
+                ->withPivot('completed_at'); 
+}
+
+public function completedUsers()
+{
+    return $this->belongsToMany(User::class, 'task_user')
+                ->whereNotNull('task_user.completed_at') 
+                ->withPivot('completed_at');
+}
+
 }

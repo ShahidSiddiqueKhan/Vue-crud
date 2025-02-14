@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TaskManagementController;
 
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -15,7 +16,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 
 Route::middleware(['auth', 'web'])->group(function () {
-    
     Route::prefix('tasks')->name('tasks.')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('index');
         Route::post('/', [TaskController::class, 'store'])->name('store');
@@ -25,5 +25,8 @@ Route::middleware(['auth', 'web'])->group(function () {
     });
 
     
+    Route::get('/task-management', [TaskManagementController::class, 'index'])
+        ->name('task.management');
+
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
 });

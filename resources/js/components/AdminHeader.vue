@@ -4,6 +4,7 @@
     <div :style="styles.menu">
       <Link href="/tasks" :style="styles.link">Home</Link>
       <Link href="/users" :style="styles.link">Users</Link>
+      <Link href="/task-management" :style="styles.link">Task Management</Link> <!-- New Link -->
     </div>
   </nav>
 </template>
