@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
@@ -25,16 +26,18 @@ class Task extends Model
     ];
 
     public function assignedUsers()
-{
-    return $this->belongsToMany(User::class, 'task_user')
-                ->withPivot('completed_at'); 
-}
+    {
+        return $this->belongsToMany(User::class, 'task_user')
+                    ->withPivot('status', 'completed_at')
+                    ->withTimestamps();
+    }
+    
 
 public function completedUsers()
 {
     return $this->belongsToMany(User::class, 'task_user')
-                ->whereNotNull('task_user.completed_at') 
-                ->withPivot('completed_at');
+                ->wherePivot('status', 'Completed')
+                ->withPivot('status', 'completed_at');
 }
 
 }

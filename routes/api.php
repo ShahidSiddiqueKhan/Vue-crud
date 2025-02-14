@@ -6,10 +6,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tasks', TaskController::class);
+    
+    // Update status (Only keep ONE route)
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
+
+    // Ensure correct HTTP method (POST or PUT)
+    Route::post('/tasks/{task}/update-user-status', [TaskController::class, 'updateUserTaskStatus']);
+
+    // Assign task to multiple users
+    Route::put('/tasks/{task}/assign', [TaskController::class, 'assignTask']);
+
+    // Get all users (only accessible to admin)
     Route::get('/users', [UserController::class, 'index'])->middleware('admin');
 
-    Route::put('/tasks/{task}/assign', [TaskController::class, 'assignTask']);
-    Route::put('/tasks/{id}/status', [TaskController::class, 'updateStatus']);
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 });

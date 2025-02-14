@@ -28,19 +28,21 @@
      <td :style="styles.tdStyle">{{ task.title }}</td>
      <td :style="styles.tdStyle">{{ task.description }}</td>
      <td :style="styles.tdStyle">
-<select 
-v-model="task.status" 
-@change="updateStatus(task)" 
-:disabled="(userRole !== 'admin' && userRole !== 'super-admin') && task.status === 'Completed'" 
-:style="styles.inputStyle">
-<option value="Pending">Pending</option>
-<option value="Completed">Completed</option>
+  <ul>
+    <li v-for="user in task.assigned_users" :key="user.id">
+      {{ user.name }} - 
+      <select v-model="task.status" @change="updateUserStatus(task)">
+  <option value="Pending">Pending</option>
+  <option value="Completed">Completed</option>
 </select>
-<br>
-<span v-if="task.status === 'Completed'">
-Completed at:  {{ formatDateTime(task.completed_at) }}
-</span>
+
+      <span v-if="user.status === 'Completed'"> 
+        (Completed at: {{ formatDateTime(user.completed_at) }})
+      </span>
+    </li>
+  </ul>
 </td>
+
 
 
 
@@ -140,171 +142,171 @@ import AdminHeader from '@/components/AdminHeader.vue';
 import styles from '@/config/StyleConfig.js';
 
 export default {
-components: {
-AdminHeader,
-},
-props: {
-userRole: String,  
-},
+  components: {
+    AdminHeader,
+  },
+  props: {
+    tasks: Array,
+    users: Array,
+    userRole: String,
+  },
+  data() {
+    return {
+      form: { 
+        title: '', 
+        description: '', 
+        status: 'Pending', 
+        due_date: '', 
+        priority: 'Low', 
+        reminder: '', 
+        assigned_to: [] 
+      },
+      showModal: false,
+      editingTask: null,
+      styles,
+      errorMessage: "",
+      dueDateToggle: false,
+      reminderToggle: false  
+    };
+  },
+  methods: {
+    formatDateTime(dateTime) {
+      if (!dateTime) return "No time and date";
+      return new Date(dateTime).toLocaleString(); 
+    },
 
-props: ['tasks', 'users', 'userRole'],
-data() {
-return {
- form: { 
-   title: '', 
-   description: '', 
-   status: 'Pending', 
-   due_date: '', 
-   priority: 'Low', 
-   reminder: '', 
-   assigned_to: '' 
- },
- showModal: false,
- editingTask: null,
- styles,
- errorMessage: "",
- dueDateToggle: false,
- reminderToggle: false  
-};
-},
+    openModal(task) {
+      if (task && task.id) {
+        this.editingTask = task;
+        this.form = { ...task };
+        this.dueDateToggle = !!task.due_date;
+        this.reminderToggle = !!task.reminder;
+      } else {
+        this.editingTask = null;
+        this.form = { 
+          title: '', 
+          description: '', 
+          status: 'Pending', 
+          due_date: '', 
+          priority: 'Low', 
+          reminder: '', 
+          assigned_to: [] 
+        };
+        this.dueDateToggle = false;
+        this.reminderToggle = false;
+      }
+      this.showModal = true;
+    },
 
-methods: {
-formatDateTime(dateTime) {
- if (!dateTime) return "No time and date";
- return new Date(dateTime).toLocaleString(); 
-},
-openModal(task) {
- if (task && task.id) {
-   this.editingTask = task;
-   this.form = { ...task };
-   this.dueDateToggle = !!task.due_date;
-   this.reminderToggle = !!task.reminder;
- } else {
-   this.editingTask = null;
-   this.form = { 
-     title: '', 
-     description: '', 
-     status: 'Pending', 
-     due_date: '', 
-     priority: 'Low', 
-     reminder: '', 
-     assigned_to: '' 
-   };
-   this.dueDateToggle = false;
-   this.reminderToggle = false;
- }
- this.showModal = true;
-},
+    async saveTask() {
+      const alphaRegex = /^[A-Za-z\s]+$/;
+      if (!alphaRegex.test(this.form.title)) {
+        this.errorMessage = "Title must only contain alphabetic characters and spaces.";
+        return; 
+      }
+      this.errorMessage = "";
+      const taskId = this.editingTask?.id;
+      const apiUrl = taskId ? `/tasks/${taskId}` : '/tasks';
 
-async saveTask() {
- const alphaRegex = /^[A-Za-z\s]+$/;
- if (!alphaRegex.test(this.form.title)) {
-   this.errorMessage = "Title must only contain alphabetic characters and spaces.";
-   return; 
- }
- this.errorMessage = "";
- const taskId = this.editingTask?.id;
- const apiUrl = taskId ? `/tasks/${taskId}` : '/tasks';
- try {
-   await apiClient({
-     method: taskId ? 'put' : 'post',
-     url: apiUrl,
-     data: this.form
-   });
-   this.refreshTasks();
-   this.closeModal();
- } catch (error) {
-   console.error("Error saving task:", error.response?.data || error.message);
- }
-},
+      try {
+        await apiClient({
+          method: taskId ? 'put' : 'post',
+          url: apiUrl,
+          data: this.form
+        });
+        this.refreshTasks();
+        this.closeModal();
+      } catch (error) {
+        console.error("❌ Error saving task:", error.response?.data || error.message);
+      }
+    },
 
-async updateStatus(task) {
-try {
-const response = await apiClient.put(`/tasks/${task.id}/status`, { status: task.status });
-
-if (task.status === "Completed") {
- task.completed_at = response.data.task.completed_at || new Date().toISOString(); 
-} else {
- task.completed_at = null; 
-}
-
-alert("Task status updated successfully!");
-this.refreshTasks();
-} catch (error) {
-console.error("❌ Error updating status:", error.response?.data || error.message);
-alert(error.response?.data?.message || "Failed to update status. Please try again.");
-}
-},
-
-
-
-async deleteTask(id) {
- if (!id) {
-   console.error("Error: Task ID is undefined");
-   return;
- }
- try {
-   await apiClient.delete(`/tasks/${id}`);
-   this.refreshTasks();
- } catch (error) {
-   console.error("Error deleting task:", error.response?.data || error.message);
- }
-},
-
-confirmDelete(id) {
- if (confirm("Are you sure you want to delete this task?")) {
-   this.deleteTask(id);
- }
-},
-
-async assignTask(task) {
-  try {
-    // Ensure assigned_to is always an array
-    if (!task.assigned_to) {
-      task.assigned_to = [];  // If no user is assigned, send an empty array
-    } else if (!Array.isArray(task.assigned_to)) {
-      task.assigned_to = [task.assigned_to];  // Convert to array if it's a single value
+    async updateUserStatus(task) {
+    if (!task.id) {
+        console.error("❌ Task ID is undefined. Cannot update status.");
+        return;
     }
 
-    // Send the request with assigned_to as an array
-    await apiClient.put(`/tasks/${task.id}/assign`, { assigned_to: task.assigned_to });
-    this.refreshTasks();
-  } catch (error) {
-    console.error("Error assigning task:", error.response?.data || error.message);
+    try {
+        const response = await apiClient.post(`/tasks/${task.id}/update-user-status`, { 
+            status: task.status 
+        });
+
+        alert("✅ Task status updated successfully!");
+
+     
+        task.completed_at = response.data.task.completed_at || null;
+
+    
+        this.refreshTasks();
+    } catch (error) {
+        console.error("❌ Error updating status:", error.response?.data || error.message);
+        alert(error.response?.data?.message || "Failed to update status. Please try again.");
+    }
+},
+
+
+    async deleteTask(id) {
+      if (!id) {
+        console.error("❌ Error: Task ID is undefined");
+        return;
+      }
+      try {
+        await apiClient.delete(`/tasks/${id}`);
+        this.refreshTasks();
+      } catch (error) {
+        console.error("❌ Error deleting task:", error.response?.data || error.message);
+      }
+    },
+
+    confirmDelete(id) {
+      if (confirm("Are you sure you want to delete this task?")) {
+        this.deleteTask(id);
+      }
+    },
+
+    async assignTask(task) {
+      try {
+        
+        task.assigned_to = Array.isArray(task.assigned_to) ? task.assigned_to : [task.assigned_to];
+
+        await apiClient.put(`/tasks/${task.id}/assign`, { assigned_to: task.assigned_to });
+        this.refreshTasks();
+      } catch (error) {
+        console.error("❌ Error assigning task:", error.response?.data || error.message);
+      }
+    },
+
+    async refreshTasks() {
+      try {
+        const response = await apiClient.get('/tasks');
+        this.$emit('update:tasks', response.data);
+      } catch (error) {
+        console.error("❌ Error fetching tasks:", error.response?.data || error.message);
+      }
+    },
+
+    closeModal() {
+      this.showModal = false;
+      this.editingTask = null;
+      this.form = { 
+        title: '', 
+        description: '', 
+        status: 'Pending', 
+        due_date: '', 
+        priority: 'Low', 
+        reminder: '', 
+        assigned_to: [] 
+      };
+      this.dueDateToggle = false;
+      this.reminderToggle = false;
+    },
+
+    logout() {
+      window.location.href = "/login";
+    }
   }
-},
-
-
-async refreshTasks() {
- try {
-   const response = await apiClient.get('/tasks');
-   this.$emit('update:tasks', response.data);
- } catch (error) {
-   console.error("Error fetching tasks:", error.response?.data || error.message);
- }
-},
-
-closeModal() {
- this.showModal = false;
- this.editingTask = null;
- this.form = { 
-   title: '', 
-   description: '', 
-   status: 'Pending', 
-   due_date: '', 
-   priority: 'Low', 
-   reminder: '', 
-   assigned_to: '' 
- };
- this.dueDateToggle = false;
- this.reminderToggle = false;
-},
-
-logout() {
- window.location.href = "/login";
-}
-}
-
 };
 </script>
+
 

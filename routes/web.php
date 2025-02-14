@@ -27,6 +27,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     
     Route::get('/task-management', [TaskManagementController::class, 'index'])
         ->name('task.management');
-
+    Route::post('/tasks/{task}/update-status', [TaskController::class, 'updateUserTaskStatus']);
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
 });
